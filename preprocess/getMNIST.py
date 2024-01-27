@@ -16,14 +16,13 @@ def getMNIST(threshold = 0, numInstances = 1000):
 
     #Removing the first row. It just describes the labelling.
     rawTrainData = rawTrainData[1:len(rawTrainData)]
-    trainMatrixData = np.array(rawTrainData, dtype=float)
-
-    matrix = trainMatrixData
+    matrix = np.array(rawTrainData, dtype=float)
+    
     X = np.zeros((numInstances, 784), dtype=float)
     Y = np.zeros((numInstances, 1), dtype=float)
     
-    if (numInstances > len(matrix)):
-        raise Exception('getMNIST: numInstances must be less than {0}'.format(len(matrix)))
+    if (numInstances < 0 or numInstances > len(matrix)):
+        raise Exception('getMNIST: numInstances must be less than {0} and greater than 0'.format(len(matrix)))
 
     for i in range(0, numInstances):
         Y[i] = matrix[i][0]
@@ -34,6 +33,3 @@ def getMNIST(threshold = 0, numInstances = 1000):
                 X[i][j-1] = 0
 
     return (X, Y)
-
-    
-        
