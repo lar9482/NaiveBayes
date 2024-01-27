@@ -1,6 +1,6 @@
 import numpy as np
 
-def getPoliticialSentences(numInstances = 2500, booleanize = True):
+def getPolSentences(numInstances = 1000, booleanize = False):
     numInstancesLiberal = numInstances // 2
     numInstancesConservative = numInstances - numInstancesLiberal
 
@@ -12,6 +12,25 @@ def getPoliticialSentences(numInstances = 2500, booleanize = True):
     X = np.zeros((len(liberalSentences) + len(conservativeSentences), len(vocab)), dtype=float)
     Y = np.zeros((len(liberalSentences) + len(conservativeSentences), 1), dtype=float)
 
+    for i in range(0, len(liberalSentences)):
+        words = liberalSentences[i].split()
+        if (booleanize):
+            words = list(set(words))
+        
+        for word in words:
+            X[i][vocab.index(word)] += 1
+            Y[i] = 0
+    
+    for i in range(0, len(conservativeSentences)):
+        words = conservativeSentences[i].split()
+        if (booleanize):
+            words = list(set(words))
+        
+        for word in words:
+            X[i + len(liberalSentences)][vocab.index(word)] += 1
+            Y[i + len(liberalSentences)] = 1
+    
+    return (X, Y)
     
 def getSentences(numInstances, isLiberal):
     filePath = (
