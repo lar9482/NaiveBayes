@@ -8,10 +8,9 @@ class Model:
         """
         pass
 
-    def classify(self, X, Y):
+    def classify(self, X):
         """
             Implementation of the classify model
             @param X: np.array of (n_samples, n_features)
-            @param Y: np.array of (n_samples, 1) 
         """
         pass
