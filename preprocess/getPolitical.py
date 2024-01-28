@@ -1,6 +1,6 @@
 import numpy as np
 
-def getPolSentences_Bernouli(numInstances = 2):
+def getPolSentences_Bernoulli(numInstances = 2):
     """
         Encoding Scheme:
         X:

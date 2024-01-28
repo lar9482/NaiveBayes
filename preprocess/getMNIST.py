@@ -1,7 +1,7 @@
 import numpy as np
 import csv
 
-def getMNIST_Bernouli(threshold = 0, numInstances = 1000):
+def getMNIST_Bernoulli(threshold = 0, numInstances = 1000):
     """
         X:
         If the 1st and 3rd pixels are on, then the image is encoded as 
