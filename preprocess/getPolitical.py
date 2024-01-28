@@ -4,7 +4,7 @@ def getPolSentences_Bernouli(numInstances = 2):
     """
         Encoding Scheme:
         X:
-        Given the sentence, "Tulsa University", with the words begin positioned as the 10th and 11th words in the dictionary(sorted),
+        Given the sentence, "Tulsa University", with the words positioned as the 10th and 11th words in the dictionary(sorted),
 
         then the sentence encoded as [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0,,,0] 
         with placeholder zeros for the rest of the dictionary.
@@ -13,7 +13,7 @@ def getPolSentences_Bernouli(numInstances = 2):
         Liberal is assigned 0
         Conservative is assigned 1.
     """
-    numInstancesLiberal = numInstances // 2
+    numInstancesLiberal = (numInstances // 2) - 1
     numInstancesConservative = numInstances - numInstancesLiberal
 
     liberalSentences = getSentences(numInstancesLiberal, True)
@@ -42,7 +42,53 @@ def getPolSentences_Bernouli(numInstances = 2):
             Y[i + len(liberalSentences)] = 1
     
     return (X, Y)
+
+def getPolSentences_Multinomial(numInstances = 2):
+    """
+        Encoding Scheme:
+        X:
+        Given the sentence, "Tulsa University", with the words positioned as the 10th and 11th words in the dictionary(sorted),
+        then the sentence encoded as [10, 11, -1,,,,-1], with placeholder -1 to indicate end of the sentence. 
+        Why? Remember that the length of each email is different.
+
+        Y:
+        Liberal is assigned 0
+        Conservative is assigned 1.
+    """
+    numInstancesLiberal = (numInstances // 2) - 1
+    numInstancesConservative = numInstances - numInstancesLiberal
+
+    liberalSentences = getSentences(numInstancesLiberal, True)
+    conservativeSentences = getSentences(numInstancesConservative, False)
+    vocab = getVocabulary(liberalSentences, conservativeSentences)
+
+    X = np.zeros((len(liberalSentences) + len(conservativeSentences), len(vocab)), dtype=float)
+    Y = np.zeros((len(liberalSentences) + len(conservativeSentences), 1), dtype=float)
+
+    for i in range(0, len(liberalSentences)):
+        words = list(liberalSentences[i].split())
+        
+        for j in range(0, len(vocab)):
+            if (j < (len(words))):
+                X[i][j] = vocab.index(words[j])
+            else:
+                X[i][j] = -1
+
+            Y[i] = 0
+
+    for i in range(0, len(conservativeSentences)):
+        words = list(conservativeSentences[i].split())
+        
+        for j in range(0, len(vocab)):
+            if (j < (len(words))):
+                X[i + len(liberalSentences)][j] = vocab.index(words[j])
+            else:
+                X[i + len(liberalSentences)][j] = -1
+                
+            Y[i + len(liberalSentences)] = 0
     
+    return (X, Y)
+
 def getSentences(numInstances, isLiberal):
     filePath = (
         "./dataset/politicial/liberal.txt" if isLiberal 
