@@ -17,6 +17,9 @@ class MultinomialNB(Model):
         self.numClasses = numClasses
         self.k = k
 
+        # Sentienel character to indicate the end of a sample instance.
+        self.terminateFeature = -1
+        
         # Referenced by probClasses[i] where i is a class
         self.probClasses = {classNumber: 0 for classNumber in range(0, self.numClasses)}
 

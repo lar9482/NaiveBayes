@@ -14,3 +14,11 @@ class Model:
             @param X: np.array of (n_samples, n_features)
         """
         pass
+
+    def evaluate(self, X, Y):
+        """
+            Implementation of evaluation for the number of correct guesses.
+            @param X: np.array of (n_samples, n_features)
+            @param Y: np.array of (n_samples, 1) 
+        """
+        pass
