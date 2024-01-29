@@ -6,9 +6,9 @@ from NFold import NFold
 from model.NaiveBayes.BernoulliNB import BernoulliNB
 
 def main():
-    (X, Y) = getPolSentences_Bernoulli(7500)
+    (X, Y) = getPolSentences_Bernoulli(1000)
     (X, Y) = shuffleDataset(X, Y)
-    model = BernoulliNB(len(X[0]), 2, 1)
+    model = BernoulliNB(len(X[0]), 2, 0)
     (trainAcc, testAcc) = NFold(X, Y, model)
     print(trainAcc, testAcc)
     
