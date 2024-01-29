@@ -1,6 +1,6 @@
 import numpy as np
 
-def NFold(X, Y, N = 5, model = ""):
+def NFold(X, Y, model, N = 5):
     if (len(X) != len(Y)):
         raise Exception('The number of samples in X and Y must be the same')
     
@@ -19,6 +19,10 @@ def NFold(X, Y, N = 5, model = ""):
         testY = Y[startIndex:endIndex, :]
         
         #Do training and testing here
+        model.fit(trainX, trainY)
+
+        trainAcc += model.evaluate(trainX, trainY)
+        testAcc += model.evaluate(testX, testY)
 
         startIndex = endIndex
         endIndex += difference
