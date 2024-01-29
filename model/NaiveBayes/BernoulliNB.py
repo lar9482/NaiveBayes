@@ -83,13 +83,12 @@ class BernoulliNB(Model):
                 )
                 #IS THIS WRONG?????
                 for feature in range(0, self.numFeatures):
-                    if (sample[feature] == 1):      
-                        PSampleGivenClass += math.log(
-                            self.probFeatureGivenClass[feature][classOutput]
-                        )
-                    else:
-                        PSampleGivenClass += math.log(
-                            1 - self.probFeatureGivenClass[feature][classOutput]
+                    prob = self.probFeatureGivenClass[feature][classOutput]
+                    if (prob != 0):
+                        PSampleGivenClass += (
+                            math.log(prob) 
+                            if sample[feature] == 1
+                            else math.log(1 - prob)
                         )
                 PClassGivenSample = (PSampleGivenClass / PSampleGivenAllClasses)
 
@@ -111,13 +110,12 @@ class BernoulliNB(Model):
 
             #IS THIS WRONG????
             for feature in range(0, self.numFeatures):
-                if (sample[feature] == 1):      
-                    sumProb += math.log(
-                        self.probFeatureGivenClass[feature][classOutput]
-                    )
-                else:
-                    sumProb += math.log(
-                        1 - self.probFeatureGivenClass[feature][classOutput]
+                prob = self.probFeatureGivenClass[feature][classOutput]
+                if (prob != 0):
+                    sumProb += (
+                        math.log(prob) 
+                        if sample[feature] == 1
+                        else math.log(1 - prob)
                     )
             
             PSample += sumProb
