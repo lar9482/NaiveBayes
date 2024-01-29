@@ -18,13 +18,13 @@ class MultinomialNB(Model):
         self.k = k
 
         # Sentienel character to indicate the end of a sample instance.
-        self.terminateFeature = -1
+        self.terminateVocab = -1
         
         # Referenced by probClasses[i] where i is a class
         self.probClasses = {classNumber: 0 for classNumber in range(0, self.numClasses)}
 
-        # Referenced by probFeatureGivenClass[i][j] where i is a feature and j is a class
-        self.probFeatureGivenClass = {
+        # Referenced by probVocabGivenClass[i][j] where i is a vocab word and j is a class
+        self.probVocabGivenClass = {
             feature: {
                 classNumber: 0 for classNumber in range(0, self.numClasses)
             } for feature in range(0, self.numFeatures)
