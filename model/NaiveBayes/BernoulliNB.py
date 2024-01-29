@@ -51,11 +51,15 @@ class BernoulliNB(Model):
             
             if (Y[sample] == classOutput):
                 classMatch += 1    
-
-        self.probFeatureGivenClass[feature][classOutput] = (
-            (featureAndClassMatch + self.k) / 
-            (classMatch + self.k*(2))
+        
+        PFeaturePerClassOutput = (
+            featureAndClassMatch / classMatch if self.k == 0
+            else (
+                (featureAndClassMatch + self.k) / 
+                (classMatch + self.k*(2))
+            )
         )
+        self.probFeatureGivenClass[feature][classOutput] = PFeaturePerClassOutput
 
     def fitClassOutput(self, classOutput, Y):
         classMatch = 0
@@ -64,9 +68,13 @@ class BernoulliNB(Model):
             if (Y[i] == classOutput):
                 classMatch += 1
 
-        self.probClasses[classOutput] = (
-            classMatch / numSamples
+        PClass = (
+            classMatch / numSamples if self.k == 0 
+            else (
+                (classMatch + 1) / (numSamples + self.k)
+            )
         )
+        self.probClasses[classOutput] = PClass
 
     def classify(self, X):
         Y = np.zeros((len(X), 1), dtype=float)
