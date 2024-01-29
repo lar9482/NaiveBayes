@@ -1,5 +1,8 @@
 from model.Model import Model
 
+import numpy as np
+import math
+
 class BernoulliNB(Model):
 
     def __init__(self, numFeatures, numClasses, k = 0):
@@ -32,6 +35,8 @@ class BernoulliNB(Model):
             for classOutput in range(0, self.numClasses):
                 self.fitFeaturePerClassOutput(feature, classOutput, X, Y)
 
+                print("Fitted feature {0} on class {1}".format(feature, classOutput))
+
         for classOutput in range(0, self.numClasses):
             self.fitClassOutput(classOutput, Y)
 
@@ -40,16 +45,16 @@ class BernoulliNB(Model):
         classMatch = 0
         numSamples = len(X)
 
-        for i in range(0, numSamples):
-            if (X[i][feature] == 1 and Y[i] == classOutput):
+        for sample in range(0, numSamples):
+            if (X[sample][feature] == 1 and Y[sample] == classOutput):
                 featureAndClassMatch += 1
             
-            if (Y[i] == classOutput):
-                classMatch += 1
+            if (Y[sample] == classOutput):
+                classMatch += 1    
 
         self.probFeatureGivenClass[feature][classOutput] = (
             (featureAndClassMatch + self.k) / 
-            (classMatch + self.k*(numSamples))
+            (classMatch + self.k*(2))
         )
 
     def fitClassOutput(self, classOutput, Y):
@@ -64,4 +69,57 @@ class BernoulliNB(Model):
         )
 
     def classify(self, X):
-        pass
+        Y = np.zeros((len(X), 1), dtype=float)
+
+        for i in range(0, len(X)):
+            maxPClassGivenSample = -1
+            maxClass = -1
+            sample = X[i]
+
+            PSampleGivenAllClasses = self.PSampleGivenAllClasses(sample)
+            for classOutput in range(0, self.numClasses):
+                PSampleGivenClass = math.log(
+                    self.probClasses[classOutput]
+                )
+                #IS THIS WRONG?????
+                for feature in range(0, self.numFeatures):
+                    if (sample[feature] == 1):      
+                        PSampleGivenClass += math.log(
+                            self.probFeatureGivenClass[feature][classOutput]
+                        )
+                    else:
+                        PSampleGivenClass += math.log(
+                            1 - self.probFeatureGivenClass[feature][classOutput]
+                        )
+                PClassGivenSample = (PSampleGivenClass / PSampleGivenAllClasses)
+
+                if (maxPClassGivenSample < PClassGivenSample):
+                    maxPClassGivenSample = PClassGivenSample
+                    maxClass = classOutput
+
+            Y[i] = maxClass
+        
+        return Y
+
+    def PSampleGivenAllClasses(self, sample):
+        PSample = 0
+        for classOutput in range(0, self.numClasses):
+
+            sumProb = math.log(
+                self.probClasses[classOutput]
+            )
+
+            #IS THIS WRONG????
+            for feature in range(0, self.numFeatures):
+                if (sample[feature] == 1):      
+                    sumProb += math.log(
+                        self.probFeatureGivenClass[feature][classOutput]
+                    )
+                else:
+                    sumProb += math.log(
+                        1 - self.probFeatureGivenClass[feature][classOutput]
+                    )
+            
+            PSample += sumProb
+        
+        return PSample
