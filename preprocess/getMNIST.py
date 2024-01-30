@@ -40,7 +40,7 @@ def getMNIST_Bernoulli(threshold = 0, numInstances = 1000):
             else:
                 X[i][j-1] = 0
 
-    return (X, Y)
+    return (X, Y, 2, 10)
 
 def getMNIST_Multinomial(threshold = 0, numInstances = 100):
     """
@@ -88,4 +88,4 @@ def getMNIST_Multinomial(threshold = 0, numInstances = 100):
                 index += 1
             else:
                 X[i][j] = -1
-    return (X, Y)
+    return (X, Y, 784, 10)
