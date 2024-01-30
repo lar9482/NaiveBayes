@@ -63,7 +63,7 @@ class MultinomialNB(Model):
     def findLengthOfDataInstance(self, X, i):
         d = 0
         for j in range(0, range(X[i])):
-            if (d == self.terminateVocab):
+            if (X[i][j] == self.terminateVocab):
                 break
             d += 1
         return d
