@@ -1,5 +1,8 @@
 from model.Model import Model
 
+import numpy as np
+import math
+
 class MultinomialNB(Model):
 
     def __init__(self, numVocab, numClasses, k = 0):
@@ -34,8 +37,10 @@ class MultinomialNB(Model):
         for classOutput in range(0, self.numClasses):
             for vocab in range(0, self.numVocab):
                 self.fitProbVocabGivenClass(vocab, classOutput, X, Y)
+                print("Fitted vocab feature {0} with class {1}".format(vocab, classOutput))
 
             self.fitClassOutput(classOutput, Y)
+            print("Fitted class {0}".format(classOutput))
 
     def fitProbVocabGivenClass(self, vocab, classOutput, X, Y):
         vocabAndClassMatch = 0
@@ -62,7 +67,7 @@ class MultinomialNB(Model):
 
     def findLengthOfDataInstance(self, X, i):
         d = 0
-        for j in range(0, range(X[i])):
+        for j in range(0, len(X[i])):
             if (X[i][j] == self.terminateVocab):
                 break
             d += 1
@@ -84,4 +89,55 @@ class MultinomialNB(Model):
         self.probClasses[classOutput] = PClass
     
     def classify(self, X):
-        pass
+        Y = np.zeros((len(X), 1), dtype=int)
+        for i in range(0, len(X)):
+            maxPClassGivenSample = -1
+            maxClass = -1
+            sample = X[i]
+
+            #The normalizing constant
+            PSampleGivenAllClasses = self.PSampleGivenAllClasses(sample)
+
+            for classOutput in range(0, self.numClasses):
+                PSampleGivenClass = abs(math.log(
+                    self.probClasses[classOutput]
+                ))
+                for vocabInSample in sample:
+                    if (vocabInSample == self.terminateVocab):
+                        break
+                    prob = self.probVocabGivenClass[vocabInSample][classOutput]
+                    if (prob != 0):
+                        PSampleGivenClass += abs(
+                            math.log(prob)
+                        )
+                
+                PClassGivenSample = (PSampleGivenClass / PSampleGivenAllClasses)
+
+                if (PClassGivenSample > maxPClassGivenSample):
+                    maxPClassGivenSample = PClassGivenSample
+                    maxClass = classOutput
+            
+            Y[i] = maxClass
+        
+        return Y
+
+
+    def PSampleGivenAllClasses(self, sample):
+        PSample = 0
+        for classOutput in range(0, self.numClasses):
+            sumProb = abs(math.log(
+                self.probClasses[classOutput]
+            ))
+
+            for vocabInSample in sample:
+                if (vocabInSample == self.terminateVocab):
+                    break
+                prob = self.probVocabGivenClass[vocabInSample][classOutput]
+                if (prob != 0):
+                    sumProb += abs(
+                        math.log(prob)
+                    )
+            
+            PSample += sumProb
+        
+        return PSample

@@ -38,7 +38,7 @@ class BernoulliNB(Model):
                 print("Fitted feature {0} on class {1}".format(feature, classOutput))
             
             self.fitClassOutput(classOutput, Y)
-            
+
 
     def fitFeaturePerClassOutput(self, feature, classOutput, X, Y):
         featureAndClassMatch = 0
@@ -84,21 +84,25 @@ class BernoulliNB(Model):
             maxClass = -1
             sample = X[i]
 
+            #The normalizing constant
             PSampleGivenAllClasses = self.PSampleGivenAllClasses(sample)
+
             for classOutput in range(0, self.numClasses):
-                PSampleGivenClass = math.log(
+                PSampleGivenClass = abs(math.log(
                     self.probClasses[classOutput]
-                )
+                ))
                 #IS THIS WRONG?????
                 for feature in range(0, self.numFeatures):
                     prob = self.probFeatureGivenClass[feature][classOutput]
                     if (prob != 0):
-                        PSampleGivenClass += (
+                        PSampleGivenClass += abs(
                             math.log(prob) 
                             if sample[feature] == 1
                             else math.log(1 - prob)
                         )
-                PClassGivenSample = (PSampleGivenClass / PSampleGivenAllClasses)
+
+                # Accounting for when
+                PClassGivenSample = PSampleGivenClass / PSampleGivenAllClasses
 
                 if (maxPClassGivenSample < PClassGivenSample):
                     maxPClassGivenSample = PClassGivenSample
@@ -112,15 +116,15 @@ class BernoulliNB(Model):
         PSample = 0
         for classOutput in range(0, self.numClasses):
 
-            sumProb = math.log(
+            sumProb = abs(math.log(
                 self.probClasses[classOutput]
-            )
+            ))
 
             #IS THIS WRONG????
             for feature in range(0, self.numFeatures):
                 prob = self.probFeatureGivenClass[feature][classOutput]
                 if (prob != 0):
-                    sumProb += (
+                    sumProb += abs(
                         math.log(prob) 
                         if sample[feature] == 1
                         else math.log(1 - prob)

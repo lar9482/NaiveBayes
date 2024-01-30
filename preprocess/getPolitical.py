@@ -87,7 +87,7 @@ def getPolSentences_Multinomial(numInstances = 2):
             else:
                 X[i + len(liberalSentences)][j] = -1
                 
-            Y[i + len(liberalSentences)] = 0
+            Y[i + len(liberalSentences)] = 1
     
     return (X, Y, len(vocab), 2)
 
