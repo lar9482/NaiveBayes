@@ -1,4 +1,4 @@
-from preprocess.getMNIST import getMNIST, getMNIST_Multinomial
+from preprocess.getMNIST import getMNIST_Bernoulli, getMNIST_Multinomial
 from preprocess.getPolitical import getPolSentences_Bernoulli, getPolSentences_Multinomial
 from preprocess.shuffle import shuffleDataset
 from NFold import NFold
@@ -14,7 +14,6 @@ def main():
     # print(trainAcc, testAcc)
 
     (X, Y, numVocab, numClasses) = getMNIST_Multinomial(0, 250)
-    (X, Y)
     (X, Y) = shuffleDataset(X, Y)
     multiNB_pol = MultinomialNB(numVocab, numClasses, 0)
     (trainAcc, testAcc) = NFold(X, Y, multiNB_pol)
