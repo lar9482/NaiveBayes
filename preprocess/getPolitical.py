@@ -54,6 +54,8 @@ def getPolSentences_Multinomial(numInstances = 2):
         Y:
         Liberal is assigned 0
         Conservative is assigned 1.
+
+        returns (X, Y, numVocab, numClasses)
     """
     numInstancesLiberal = (numInstances // 2) - 1
     numInstancesConservative = numInstances - numInstancesLiberal
@@ -62,8 +64,8 @@ def getPolSentences_Multinomial(numInstances = 2):
     conservativeSentences = getSentences(numInstancesConservative, False)
     vocab = getVocabulary(liberalSentences, conservativeSentences)
 
-    X = np.zeros((len(liberalSentences) + len(conservativeSentences), len(vocab)), dtype=float)
-    Y = np.zeros((len(liberalSentences) + len(conservativeSentences), 1), dtype=float)
+    X = np.zeros((len(liberalSentences) + len(conservativeSentences), len(vocab)), dtype=int)
+    Y = np.zeros((len(liberalSentences) + len(conservativeSentences), 1), dtype=int)
 
     for i in range(0, len(liberalSentences)):
         words = list(liberalSentences[i].split())
@@ -87,7 +89,7 @@ def getPolSentences_Multinomial(numInstances = 2):
                 
             Y[i + len(liberalSentences)] = 0
     
-    return (X, Y)
+    return (X, Y, len(vocab), 2)
 
 def getSentences(numInstances, isLiberal):
     filePath = (

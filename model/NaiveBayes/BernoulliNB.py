@@ -31,14 +31,14 @@ class BernoulliNB(Model):
         }
     
     def fit(self, X, Y):
-        for feature in range(0, self.numFeatures):
-            for classOutput in range(0, self.numClasses):
+        for classOutput in range(0, self.numClasses):
+            for feature in range(0, self.numFeatures):
                 self.fitFeaturePerClassOutput(feature, classOutput, X, Y)
 
                 print("Fitted feature {0} on class {1}".format(feature, classOutput))
-
-        for classOutput in range(0, self.numClasses):
+            
             self.fitClassOutput(classOutput, Y)
+            
 
     def fitFeaturePerClassOutput(self, feature, classOutput, X, Y):
         featureAndClassMatch = 0
