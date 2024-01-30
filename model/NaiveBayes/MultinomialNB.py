@@ -72,7 +72,7 @@ class MultinomialNB(Model):
                 break
             d += 1
         return d
-
+    
     def fitClassOutput(self, classOutput, Y):
         classMatch = 0
         numSamples = len(Y)
@@ -120,7 +120,6 @@ class MultinomialNB(Model):
             Y[i] = maxClass
         
         return Y
-
 
     def PSampleGivenAllClasses(self, sample):
         PSample = 0
