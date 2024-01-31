@@ -30,7 +30,6 @@ def runNFold_Multinomial(X, Y, numVocab, numClasses, k, configLock, sharedList):
 
 def runBernoulliConfig(fileName, numClasses, X, Y, numTimes):
     (X, Y) = shuffleDataset(X, Y)
-    DF = pd.DataFrame(columns=['k', 'trainAvg', 'testAvg'])
 
     sharedList = []
     with Manager() as manager:
@@ -54,6 +53,7 @@ def runBernoulliConfig(fileName, numClasses, X, Y, numTimes):
 
         sharedList = list(sharedListProxy)
     
+    DF = pd.DataFrame(columns=['k', 'trainAvg', 'testAvg'])
     index = 0
     for kTrainTestAcc in sharedList:
         k = kTrainTestAcc[0]
@@ -67,7 +67,6 @@ def runBernoulliConfig(fileName, numClasses, X, Y, numTimes):
 
 def runMultinomialConfig(fileName, numVocab, numClasses, X, Y, numTimes):
     (X, Y) = shuffleDataset(X, Y)
-    DF = pd.DataFrame(columns=['k', 'trainAvg', 'testAvg'])
 
     sharedList = []
     with Manager() as manager:
@@ -91,6 +90,7 @@ def runMultinomialConfig(fileName, numVocab, numClasses, X, Y, numTimes):
 
         sharedList = list(sharedListProxy)
     
+    DF = pd.DataFrame(columns=['k', 'trainAvg', 'testAvg'])
     index = 0
     for kTrainTestAcc in sharedList:
         k = kTrainTestAcc[0]
@@ -102,24 +102,51 @@ def runMultinomialConfig(fileName, numVocab, numClasses, X, Y, numTimes):
 
     DF.to_csv(fileName)
 
+def runMoviesBernoulli(numInstances, numTimes = 1):
+    (X, Y) = getMovieReviews_Bernoulli(numInstances)
+    runBernoulliConfig('MoviesBernoulli.csv', 2, X, Y, numTimes)
+
+def runMoviesMultinomial(numInstances, numTimes = 1):
+    (X, Y, numVocab, numClasses) = getMovieReviews_Multinomial(numInstances)
+    runMultinomialConfig('MoviesMultinomial.csv', numVocab, numClasses, X, Y, numTimes)
+
+def runMNISTV1(numInstances, numTimes = 1):
+    (X, Y) = getMNIST_Bernoulli(0, numInstances)
+    numVocabV1 = 2
+    numClassesV1 = 10
+    runMultinomialConfig('MNISTMultinomialV1.csv', numVocabV1, numClassesV1, X, Y, numTimes)
+
+def runMNISTV2(numInstances, numTimes = 1):
+    (X, Y, numVocabV2, numClassesV2) = getMNIST_Multinomial(0, numInstances)
+    runMultinomialConfig('MNISTMultinomialV2.csv', numVocabV2, numClassesV2, X, Y, numTimes)
+
 def main():
-    (X, Y) = getMovieReviews_Bernoulli(2500)
-    runBernoulliConfig('MoviesBernoulli.csv', 2, X, Y, 1)
+    numInstances = 2500
+    numTimes = 1
+    with Manager() as manager:
+        allProcesses = []
+        allProcesses.append(Process(
+            target=runMoviesBernoulli, 
+            args = (numInstances, numTimes)
+        ))
+        allProcesses.append(Process(
+            target=runMoviesMultinomial, 
+            args = (numInstances, numTimes)
+        ))
+        allProcesses.append(Process(
+            target=runMNISTV1, 
+            args = (numInstances, numTimes)
+        ))
+        allProcesses.append(Process(
+            target=runMNISTV2, 
+            args = (numInstances, numTimes)
+        ))
+        
+        for process in allProcesses:
+            process.start()
 
-    (X, Y, numVocab, numClasses) = getMovieReviews_Multinomial(2500)
-    runMultinomialConfig('MoviesMultinomial.csv', numVocab, numClasses, X, Y, 1)
-    # (X, Y) = getPolSentences_Bernoulli(1000)
-    # (X, Y) = shuffleDataset(X, Y)
-    # model = BernoulliNB(len(X[0]), 2, 50)
-    # (trainAcc, testAcc) = NFold(X, Y, model)
-    # print(trainAcc, testAcc)
-
-    # (X, Y, numVocab, numClasses) = getMNIST_Multinomial(0, 250)
-    # (X, Y) = shuffleDataset(X, Y)
-    # multiNB_pol = MultinomialNB(numVocab, numClasses, 0)
-    # (trainAcc, testAcc) = NFold(X, Y, multiNB_pol)
-    # print(trainAcc, testAcc)
-    # print()
+        for process in allProcesses:
+            process.join()
     
 if __name__ == '__main__':
     main()

@@ -88,14 +88,14 @@ class BernoulliNB(Model):
             PSampleGivenAllClasses = self.PSampleGivenAllClasses(sample)
 
             for classOutput in range(0, self.numClasses):
-                PSampleGivenClass = abs(math.log(
+                PSampleGivenClass = math.log(
                     self.probClasses[classOutput]
-                ))
+                )
                 #IS THIS WRONG?????
                 for feature in range(0, self.numFeatures):
                     prob = self.probFeatureGivenClass[feature][classOutput]
                     if (prob != 0):
-                        PSampleGivenClass += abs(
+                        PSampleGivenClass += (
                             math.log(prob) 
                             if sample[feature] == 1
                             else math.log(1 - prob)
@@ -119,15 +119,15 @@ class BernoulliNB(Model):
         PSample = 0
         for classOutput in range(0, self.numClasses):
 
-            sumProb = abs(math.log(
+            sumProb = math.log(
                 self.probClasses[classOutput]
-            ))
+            )
 
             #IS THIS WRONG????
             for feature in range(0, self.numFeatures):
                 prob = self.probFeatureGivenClass[feature][classOutput]
                 if (prob != 0):
-                    sumProb += abs(
+                    sumProb += (
                         math.log(prob) 
                         if sample[feature] == 1
                         else math.log(1 - prob)
