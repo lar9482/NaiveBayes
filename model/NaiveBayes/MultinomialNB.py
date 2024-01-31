@@ -110,7 +110,10 @@ class MultinomialNB(Model):
                         PSampleGivenClass += abs(
                             math.log(prob)
                         )
-                
+                    else:
+                        PSampleGivenClass = 0
+                        break
+                    
                 PClassGivenSample = (PSampleGivenClass / PSampleGivenAllClasses)
 
                 if (PClassGivenSample > maxPClassGivenSample):
@@ -136,6 +139,9 @@ class MultinomialNB(Model):
                     sumProb += abs(
                         math.log(prob)
                     )
+                else:
+                    sumProb = 0
+                    break
             
             PSample += sumProb
         

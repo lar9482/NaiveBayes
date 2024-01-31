@@ -100,6 +100,9 @@ class BernoulliNB(Model):
                             if sample[feature] == 1
                             else math.log(1 - prob)
                         )
+                    else:
+                        PSampleGivenClass = 0
+                        break
 
                 # Accounting for when
                 PClassGivenSample = PSampleGivenClass / PSampleGivenAllClasses
@@ -129,6 +132,9 @@ class BernoulliNB(Model):
                         if sample[feature] == 1
                         else math.log(1 - prob)
                     )
+                else:
+                    sumProb = 0
+                    break
             
             PSample += sumProb
         
