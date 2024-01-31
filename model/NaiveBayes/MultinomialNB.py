@@ -99,21 +99,19 @@ class MultinomialNB(Model):
             PSampleGivenAllClasses = self.PSampleGivenAllClasses(sample)
 
             for classOutput in range(0, self.numClasses):
-                PSampleGivenClass = abs(math.log(
+                PSampleGivenClass = math.log(
                     self.probClasses[classOutput]
-                ))
+                )
                 for vocabInSample in sample:
                     if (vocabInSample == self.terminateVocab):
                         break
                     prob = self.probVocabGivenClass[vocabInSample][classOutput]
                     if (prob != 0):
-                        PSampleGivenClass += abs(
-                            math.log(prob)
-                        )
+                        PSampleGivenClass += math.log(prob)
                     else:
                         PSampleGivenClass = 0
                         break
-                    
+
                 PClassGivenSample = (PSampleGivenClass / PSampleGivenAllClasses)
 
                 if (PClassGivenSample > maxPClassGivenSample):
@@ -127,18 +125,16 @@ class MultinomialNB(Model):
     def PSampleGivenAllClasses(self, sample):
         PSample = 0
         for classOutput in range(0, self.numClasses):
-            sumProb = abs(math.log(
+            sumProb = math.log(
                 self.probClasses[classOutput]
-            ))
+            )
 
             for vocabInSample in sample:
                 if (vocabInSample == self.terminateVocab):
                     break
                 prob = self.probVocabGivenClass[vocabInSample][classOutput]
                 if (prob != 0):
-                    sumProb += abs(
-                        math.log(prob)
-                    )
+                    sumProb += math.log(prob)
                 else:
                     sumProb = 0
                     break
