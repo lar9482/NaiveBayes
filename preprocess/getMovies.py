@@ -82,6 +82,10 @@ def getSentences(numInstances):
     return (positiveSentences, negativeSentences)
 
 def preprocessSentence(sentence):
+    """
+        SOURCE: https://www.kaggle.com/code/rafaeltiedra/step-by-step-imdb-sentiment-analysis
+        Credit to Rafael Tiedra for coming up with these regexes for concise data cleanup.
+    """
     sentence = re.sub('[,\.!?:()"]', '', sentence)
     sentence = re.sub('<.*?>', ' ', sentence)
     sentence = re.sub('http\S+', ' ', sentence)

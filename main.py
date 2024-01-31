@@ -11,7 +11,7 @@ import pandas as pd
 
 from multiprocessing import Process, Manager
 
-kOptions = [1, 5, 50, 100, 1000]
+kOptions = [0, 1, 25, 5, 50, 100, 1000]
 def runNFold_Bernoulli(X, Y, numClasses, k, configLock, sharedList):
     model = BernoulliNB(len(X[0]), numClasses, k)
     (trainAcc, testAcc) = NFold(X, Y, model)
@@ -103,11 +103,11 @@ def runMultinomialConfig(fileName, numVocab, numClasses, X, Y, numTimes):
     DF.to_csv(fileName)
 
 def main():
-    (X, Y) = getMovieReviews_Bernoulli(25000)
-    runBernoulliConfig('MoviesBernoulli.csv', 2, X, Y, 10)
+    (X, Y) = getMovieReviews_Bernoulli(2500)
+    runBernoulliConfig('MoviesBernoulli.csv', 2, X, Y, 1)
 
-    (X, Y, numVocab, numClasses) = getMovieReviews_Multinomial(25000)
-    runMultinomialConfig('MoviesMultinomial.csv', numVocab, numClasses, X, Y, 10)
+    (X, Y, numVocab, numClasses) = getMovieReviews_Multinomial(2500)
+    runMultinomialConfig('MoviesMultinomial.csv', numVocab, numClasses, X, Y, 1)
     # (X, Y) = getPolSentences_Bernoulli(1000)
     # (X, Y) = shuffleDataset(X, Y)
     # model = BernoulliNB(len(X[0]), 2, 50)

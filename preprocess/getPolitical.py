@@ -13,7 +13,7 @@ def getPolSentences_Bernoulli(numInstances = 2):
         Liberal is assigned 0
         Conservative is assigned 1.
     """
-    numInstancesLiberal = (numInstances // 2) - 1
+    numInstancesLiberal = (numInstances // 2)
     numInstancesConservative = numInstances - numInstancesLiberal
 
     liberalSentences = getSentences(numInstancesLiberal, True)
@@ -57,7 +57,7 @@ def getPolSentences_Multinomial(numInstances = 2):
 
         returns (X, Y, numVocab, numClasses)
     """
-    numInstancesLiberal = (numInstances // 2) - 1
+    numInstancesLiberal = (numInstances // 2)
     numInstancesConservative = numInstances - numInstancesLiberal
 
     liberalSentences = getSentences(numInstancesLiberal, True)
