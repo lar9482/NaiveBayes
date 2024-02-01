@@ -11,7 +11,7 @@ import pandas as pd
 
 from multiprocessing import Process, Manager
 
-kOptions = [0, 1, 25, 5, 50, 100, 1000]
+kOptions = [0, 1, 50, 100, 1000]
 def runNFold_Bernoulli(X, Y, numClasses, k, configLock, sharedList):
     model = BernoulliNB(len(X[0]), numClasses, k)
     (trainAcc, testAcc) = NFold(X, Y, model)
@@ -121,26 +121,26 @@ def runMNISTV2(numInstances, numTimes = 1):
     runMultinomialConfig('MNISTMultinomialV2.csv', numVocabV2, numClassesV2, X, Y, numTimes)
 
 def main():
-    numInstances = 2500
+    numInstances = 5000
     numTimes = 1
     with Manager() as manager:
         allProcesses = []
         allProcesses.append(Process(
             target=runMoviesBernoulli, 
-            args = (numInstances, numTimes)
+            args = (50000, numTimes)
         ))
         allProcesses.append(Process(
             target=runMoviesMultinomial, 
-            args = (numInstances, numTimes)
+            args = (50000, numTimes)
         ))
-        allProcesses.append(Process(
-            target=runMNISTV1, 
-            args = (numInstances, numTimes)
-        ))
-        allProcesses.append(Process(
-            target=runMNISTV2, 
-            args = (numInstances, numTimes)
-        ))
+        # allProcesses.append(Process(
+        #     target=runMNISTV1, 
+        #     args = (500, numTimes)
+        # ))
+        # allProcesses.append(Process(
+        #     target=runMNISTV2, 
+        #     args = (500, numTimes)
+        # ))
         
         for process in allProcesses:
             process.start()

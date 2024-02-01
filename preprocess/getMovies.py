@@ -6,6 +6,7 @@ import re
 def getMovieReviews_Bernoulli(numInstances = 100):
     (positiveSentences, negativeSentences) = getSentences(numInstances)
     vocab = getVocabulary(positiveSentences, negativeSentences)
+    vocabTable = {value: index for index, value in enumerate(vocab)}
 
     X = np.zeros((len(positiveSentences) + len(negativeSentences), len(vocab)), dtype=int)
     Y = np.zeros((len(positiveSentences) + len(negativeSentences), 1), dtype=float)
@@ -16,7 +17,7 @@ def getMovieReviews_Bernoulli(numInstances = 100):
         ))
         
         for word in words:
-            X[i][vocab.index(word)] = 1
+            X[i][vocabTable[word]] = 1
             Y[i] = 0
         print(i)
     for i in range(0, len(negativeSentences)):
@@ -25,7 +26,7 @@ def getMovieReviews_Bernoulli(numInstances = 100):
         ))
         
         for word in words:
-            X[i + len(positiveSentences)][vocab.index(word)] = 1
+            X[i + len(positiveSentences)][vocabTable[word]] = 1
             Y[i + len(positiveSentences)] = 1
         print(i)
     return (X, Y)
@@ -33,6 +34,7 @@ def getMovieReviews_Bernoulli(numInstances = 100):
 def getMovieReviews_Multinomial(numInstances = 100):
     (positiveSentences, negativeSentences) = getSentences(numInstances)
     vocab = getVocabulary(positiveSentences, negativeSentences)
+    vocabTable = {value: index for index, value in enumerate(vocab)}
 
     X = np.zeros((len(positiveSentences) + len(negativeSentences), len(vocab)), dtype=float)
     Y = np.zeros((len(positiveSentences) + len(negativeSentences), 1), dtype=float)
@@ -41,7 +43,7 @@ def getMovieReviews_Multinomial(numInstances = 100):
         
         for j in range(0, len(vocab)):
             if (j < (len(words))):
-                X[i][j] = vocab.index(words[j])
+                X[i][j] = vocabTable[words[j]]
             else:
                 X[i][j] = -1
 
@@ -52,7 +54,7 @@ def getMovieReviews_Multinomial(numInstances = 100):
         
         for j in range(0, len(vocab)):
             if (j < (len(words))):
-                X[i + len(positiveSentences)][j] = vocab.index(words[j])
+                X[i + len(positiveSentences)][j] = vocabTable[words[j]]
             else:
                 X[i + len(positiveSentences)][j] = -1
                 
