@@ -34,19 +34,23 @@ class MultinomialNB(Model):
         }
     
     def fit(self, X, Y):
+        lengthOfX = np.zeros((len(X), 1), dtype=int)
+        for i in range(0, len(X)):
+            lengthOfX[i] = self.findLengthOfDataInstance(X, i)
+
         for classOutput in range(0, self.numClasses):
             for vocab in range(0, self.numVocab):
-                self.fitProbVocabGivenClass(vocab, classOutput, X, Y)
+                self.fitProbVocabGivenClass(vocab, classOutput, lengthOfX, X, Y)
                 print("Fitted vocab feature {0} with class {1}".format(vocab, classOutput))
 
             self.fitClassOutput(classOutput, Y)
             print("Fitted class {0}".format(classOutput))
 
-    def fitProbVocabGivenClass(self, vocab, classOutput, X, Y):
+    def fitProbVocabGivenClass(self, vocab, classOutput, lengthOfX, X, Y):
         vocabAndClassMatch = 0
         classMatch = 0
         for i in range(0, len(X)):
-            lengthOfInstance = self.findLengthOfDataInstance(X, i)
+            lengthOfInstance = lengthOfX[i]
 
             for j in range(0, lengthOfInstance):
                 if (X[i][j] == vocab and Y[i] == classOutput):
