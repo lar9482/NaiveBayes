@@ -46,6 +46,7 @@ def getMovieReviews_Multinomial(numInstances = 100):
                 X[i][j] = vocabTable[words[j]]
             else:
                 X[i][j] = -1
+                break
 
             Y[i] = 0
 
@@ -57,6 +58,7 @@ def getMovieReviews_Multinomial(numInstances = 100):
                 X[i + len(positiveSentences)][j] = vocabTable[words[j]]
             else:
                 X[i + len(positiveSentences)][j] = -1
+                break
                 
             Y[i + len(positiveSentences)] = 1
     

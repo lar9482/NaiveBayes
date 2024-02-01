@@ -123,23 +123,26 @@ def runMNISTV2(numInstances, numTimes = 1):
 def main():
     numInstances = 5000
     numTimes = 1
+    
+    # runMoviesBernoulli(5000, numTimes)
+    # runMoviesMultinomial(5000, numTimes)
     with Manager() as manager:
         allProcesses = []
         allProcesses.append(Process(
             target=runMoviesBernoulli, 
-            args = (50000, numTimes)
+            args = (5000, numTimes)
         ))
         allProcesses.append(Process(
             target=runMoviesMultinomial, 
-            args = (50000, numTimes)
+            args = (5000, numTimes)
         ))
         # allProcesses.append(Process(
         #     target=runMNISTV1, 
-        #     args = (500, numTimes)
+        #     args = (20000, numTimes)
         # ))
         # allProcesses.append(Process(
         #     target=runMNISTV2, 
-        #     args = (500, numTimes)
+        #     args = (20000, numTimes)
         # ))
         
         for process in allProcesses:
