@@ -1,4 +1,5 @@
 from model.Model import Model
+from joblib import Parallel, delayed
 
 import numpy as np
 import math
@@ -32,6 +33,9 @@ class BernoulliNB(Model):
     
     def fit(self, X, Y):
         for classOutput in range(0, self.numClasses):
+            # Parallel(n_jobs=(-2), backend='multiprocessing')(delayed(self.fitProbVocabGivenClass)(
+            #     feature, classOutput, X, Y
+            # ) for feature in range(0, self.numFeatures))
             for feature in range(0, self.numFeatures):
                 self.fitFeaturePerClassOutput(feature, classOutput, X, Y)
 
@@ -60,6 +64,8 @@ class BernoulliNB(Model):
             )
         )
         self.probFeatureGivenClass[feature][classOutput] = PFeaturePerClassOutput
+
+        print("Fitted feature {0} on class {1}".format(feature, classOutput))
 
     def fitClassOutput(self, classOutput, Y):
         classMatch = 0

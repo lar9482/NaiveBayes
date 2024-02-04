@@ -1,11 +1,14 @@
 from model.Model import Model
+from joblib import Parallel, delayed
+
+from multiprocessing import Process, Manager
 
 import numpy as np
 import math
 
 class MultinomialNB(Model):
 
-    def __init__(self, numVocab, numClasses, k = 0):
+    def __init__(self, numVocab, numClasses, k = 0, fitParallel = True, fitJobs = 20):
         """
             @param numVocab: Integer
             The number of vocabulary words in the entire dataset
@@ -15,10 +18,20 @@ class MultinomialNB(Model):
 
             @param k: Integer
             The prediction constant for Laplace smoothing
+
+            @param fitParallel: Bool
+            A flag to determine if fit(X, Y) should be ran in parallel
+
+            @param fitJobs: Integer
+            The number of subprocesses to help compute fitting each vocab word 
+            with samples in the dataset
+
         """
         self.numVocab = numVocab
         self.numClasses = numClasses
         self.k = k
+        self.fitJobs = fitJobs
+        self.fitParallel = fitParallel
 
         # Sentienel character to indicate the end of a sample instance.
         self.terminateVocab = -1
@@ -39,35 +52,175 @@ class MultinomialNB(Model):
             lengthOfX[i] = self.findLengthOfDataInstance(X, i)
 
         for classOutput in range(0, self.numClasses):
-            for vocab in range(0, self.numVocab):
-                self.fitProbVocabGivenClass(vocab, classOutput, lengthOfX, X, Y)
-                print("Fitted vocab feature {0} with class {1}".format(vocab, classOutput))
-
+            if (self.fitParallel):
+                self.fitProbVocabGivenClass_Parallel(classOutput, lengthOfX, X, Y)
+            else:
+                self.fitProbVocabGivenClass_Sequential(classOutput, lengthOfX, X, Y)  
+            
             self.fitClassOutput(classOutput, Y)
             print("Fitted class {0}".format(classOutput))
+    
+    def fitProbVocabGivenClass_Parallel(self, classOutput, lengthOfX, X, Y):
+        """
+            Instances of X,Y are processed in parallel.
+            This is done be dividing the number of vocab words with the number of 
+            samples in the dataset proportationally with self.fitJobs
 
-    def fitProbVocabGivenClass(self, vocab, classOutput, lengthOfX, X, Y):
-        vocabAndClassMatch = 0
-        classMatch = 0
-        for i in range(0, len(X)):
-            lengthOfInstance = lengthOfX[i]
-
-            for j in range(0, lengthOfInstance):
-                if (X[i][j] == vocab and Y[i] == classOutput):
-                    vocabAndClassMatch += 1
+            Thus, the number of vocabAndClassMatches and classMatches are computed in parallel.
+        """
+        intervals_DataAndVocab = self.__divideDatasetAndVocab(X)       
+        sharedMatchesPerVocab = {}
+        with Manager() as manager:
+            allProcesses = []
+            matchesPerVocabLock = manager.Lock()
+            sharedMatchesPerVocabProxy = manager.dict()
+            intervalSize = (len(intervals_DataAndVocab)) // self.fitJobs
+            for i in range(0, self.fitJobs):
+                unitsOfWork = intervals_DataAndVocab[i*intervalSize:(i+1)*intervalSize]
+                allProcesses.append(Process(
+                    target=self.__fitProbVocabGivenClass_Subprocess,
+                    args=(
+                        unitsOfWork, classOutput, lengthOfX, X, Y,
+                        sharedMatchesPerVocabProxy, matchesPerVocabLock
+                    )
+                ))
+            for process in allProcesses:
+                process.start()
+            for process in allProcesses:
+                process.join()
             
-            if (Y[i] == classOutput):
-                classMatch += lengthOfInstance
+            sharedMatchesPerVocab = dict(sharedMatchesPerVocabProxy)
 
-        PVocabGivenClass = (
-            (vocabAndClassMatch / classMatch) if self.k == 0
-            else (
-                (vocabAndClassMatch + self.k) /
-                (classMatch + self.k*(self.numVocab))
+        for vocab in list(sharedMatchesPerVocab.keys()):
+            allVocabAndClassMatches = sharedMatchesPerVocab[vocab][0]
+            allClassMatches = sharedMatchesPerVocab[vocab][1]
+            PVocabGivenClass = (
+                (allVocabAndClassMatches / allClassMatches) if self.k == 0
+                else (
+                    (allVocabAndClassMatches + self.k) /
+                    (allClassMatches + self.k*(self.numVocab))
+                )
             )
-        )
+            self.probVocabGivenClass[vocab][classOutput] = PVocabGivenClass
+            print("Parallel: Finishing vocab feature {0} with class {1}.".format(vocab, classOutput))
+
+    def __divideDatasetAndVocab(self, X):
+        intervalX = np.arange(0, len(X) + 1, (len(X)) // self.fitJobs)
+        intervalVocab = np.arange(0, self.numVocab+1, (self.numVocab) // self.fitJobs)
+
+        #Making sure the end of the intervals are the actual last elements of X or the dictionary.
+        intervalX[len(intervalX)-1] = len(X)
+        intervalVocab[len(intervalVocab)-1] = self.numVocab
+
+        intervalXAndVocab = []
+        for i in range(0, len(intervalX)-1):
+            for j in range(0, len(intervalVocab)-1):
+                startX = intervalX[i]
+                endX = intervalX[i+1]
+                startVocab = intervalVocab[j]
+                endVocab = intervalVocab[j+1]
+                intervalXAndVocab.append((startX, endX, startVocab, endVocab))
+
+        return intervalXAndVocab
+    
+    def __fitProbVocabGivenClass_Subprocess(self, 
+        unitsOfWork, classOutput, lengthOfX, X, Y,
+        sharedMatchesPerVocabProxy, matchesPerVocabLock
+    ):
+        """
+            Given every unit of (startX, endX, startVocab, endVocab), or the bounds of the dataset 
+            and vocabulary dictionary,
+            all jobs are computed and the numbers are aggregated.
+
+            @returns: dict(vocab: (vocabAndClassMatch, classMatch))
+        """
+        subProcessMatchesPerVocab = {}
+        for unit in unitsOfWork:
+            startX = unit[0]
+            endX = unit[1]
+            startVocab = unit[2]
+            endVocab = unit[3]
+            localMatchesPerVocab = self.__fitProbVocabGivenClass_SubprocessJob(
+                startX, endX, startVocab, endVocab,
+                classOutput, lengthOfX, X, Y
+            )
+
+            for vocab in list(localMatchesPerVocab.keys()):
+                localVocabAndClassMatch = localMatchesPerVocab[vocab][0]
+                localClassMatches = localMatchesPerVocab[vocab][1]
+                if (subProcessMatchesPerVocab.get(vocab) == None):
+                    subProcessMatchesPerVocab[vocab] = [localVocabAndClassMatch, localClassMatches]
+                else:
+                    subProcessMatchesPerVocab[vocab][0] += localVocabAndClassMatch
+                    subProcessMatchesPerVocab[vocab][1] += localClassMatches
         
-        self.probVocabGivenClass[vocab][classOutput] = PVocabGivenClass
+        matchesPerVocabLock.acquire()
+        for vocab in list(subProcessMatchesPerVocab.keys()):
+            subProcessVocabAndClassMatches = subProcessMatchesPerVocab[vocab][0]
+            subProcessClassMatches = subProcessMatchesPerVocab[vocab][1]
+            if (sharedMatchesPerVocabProxy.get(vocab) == None):
+                sharedMatchesPerVocabProxy[vocab] = [subProcessVocabAndClassMatches, subProcessClassMatches]
+            else:
+                sharedMatchesPerVocabProxy[vocab][0] += subProcessVocabAndClassMatches
+                sharedMatchesPerVocabProxy[vocab][1] += subProcessClassMatches
+        matchesPerVocabLock.release()
+
+   
+    def __fitProbVocabGivenClass_SubprocessJob(self, startX, endX, startVocab, endVocab,
+            classOutput, lengthOfX, X, Y
+        ):
+        """
+            Given the bounds of the dataset and the vocabulary dictionary,
+            The job, orthe number of vocabAndClassMatches and classMatches, is computed.
+
+            @returns: dict(vocab: (vocabAndClassMatch, classMatch))
+        """
+        localMatchesPerVocab = {}
+        for vocab in range(startVocab, endVocab):
+            localVocabAndClassMatch = 0
+            localClassMatch = 0
+            for i in range(startX, endX):
+                lengthOfInstance = lengthOfX[i][0]
+                for j in range(0, lengthOfInstance):
+                    if (X[i][j] == vocab and Y[i] == classOutput):
+                        localVocabAndClassMatch += 1
+            
+                if (Y[i] == classOutput):
+                    localClassMatch += lengthOfInstance
+                
+            if (localMatchesPerVocab.get(vocab) == None):
+                localMatchesPerVocab[vocab] = [localVocabAndClassMatch, localClassMatch]
+            else:
+                localMatchesPerVocab[vocab][0] += localVocabAndClassMatch
+                localMatchesPerVocab[vocab][1] += localClassMatch
+
+            print("Parallel: Fitted vocab feature {0} with class {1} from samples ({2},{3})".format(vocab, classOutput,startX,endX))
+        return localMatchesPerVocab
+
+    def fitProbVocabGivenClass_Sequential(self, classOutput, lengthOfX, X, Y):
+        for vocab in range(0, self.numVocab):
+            vocabAndClassMatch = 0
+            classMatch = 0
+            
+            for i in range(0, len(X)):
+                lengthOfInstance = lengthOfX[i][0]
+                for j in range(0, lengthOfInstance):
+                    if (X[i][j] == vocab and Y[i] == classOutput):
+                        vocabAndClassMatch += 1
+            
+                if (Y[i] == classOutput):
+                    classMatch += lengthOfInstance
+
+            PVocabGivenClass = (
+                (vocabAndClassMatch / classMatch) if self.k == 0
+                else (
+                    (vocabAndClassMatch + self.k) /
+                    (classMatch + self.k*(self.numVocab))
+                )
+            )
+        
+            self.probVocabGivenClass[vocab][classOutput] = PVocabGivenClass
+            print("Serial: Fitted vocab feature {0} with class {1}".format(vocab, classOutput))
 
     def findLengthOfDataInstance(self, X, i):
         d = 0

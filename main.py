@@ -121,35 +121,38 @@ def runMNISTV2(numInstances, numTimes = 1):
     runMultinomialConfig('MNISTMultinomialV2.csv', numVocabV2, numClassesV2, X, Y, numTimes)
 
 def main():
-    numInstances = 5000
+    numInstances = 20000
     numTimes = 1
-    
-    # runMoviesBernoulli(5000, numTimes)
-    # runMoviesMultinomial(5000, numTimes)
-    with Manager() as manager:
-        allProcesses = []
-        allProcesses.append(Process(
-            target=runMoviesBernoulli, 
-            args = (5000, numTimes)
-        ))
-        allProcesses.append(Process(
-            target=runMoviesMultinomial, 
-            args = (5000, numTimes)
-        ))
-        # allProcesses.append(Process(
-        #     target=runMNISTV1, 
-        #     args = (20000, numTimes)
-        # ))
-        # allProcesses.append(Process(
-        #     target=runMNISTV2, 
-        #     args = (20000, numTimes)
-        # ))
+    k = 1
+    (X, Y, numVocab, numClasses) = getMNIST_Multinomial(0, numInstances)
+    (X, Y) = shuffleDataset(X, Y)
+    multiNB = MultinomialNB(numVocab, numClasses, k)
+    (trainAcc, testAcc) = NFold(X, Y, multiNB)
+    print(trainAcc, testAcc)
+    # with Manager() as manager:
+    #     allProcesses = []
+    #     # allProcesses.append(Process(
+    #     #     target=runMoviesBernoulli, 
+    #     #     args = (2500, numTimes)
+    #     # ))
+    #     # allProcesses.append(Process(
+    #     #     target=runMoviesMultinomial, 
+    #     #     args = (2500, numTimes)
+    #     # ))
+    #     allProcesses.append(Process(
+    #         target=runMNISTV1, 
+    #         args = (20000, numTimes)
+    #     ))
+    #     allProcesses.append(Process(
+    #         target=runMNISTV2, 
+    #         args = (20000, numTimes)
+    #     ))
         
-        for process in allProcesses:
-            process.start()
+    #     for process in allProcesses:
+    #         process.start()
 
-        for process in allProcesses:
-            process.join()
+    #     for process in allProcesses:
+    #         process.join()
     
 if __name__ == '__main__':
     main()
